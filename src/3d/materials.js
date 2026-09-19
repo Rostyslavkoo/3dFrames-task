@@ -10,12 +10,13 @@ function loadRepeatingTexture(path) {
 }
 
 export function createMaterials() {
-	const woodMap = loadRepeatingTexture('/assets/textures/texture_wood.jpg');
-	const woodNormalMap = loadRepeatingTexture('/assets/textures/texture_wood_normal.jpg');
+	const base = import.meta.env.BASE_URL;
+	const woodMap = loadRepeatingTexture(`${base}assets/textures/texture_wood.jpg`);
+	const woodNormalMap = loadRepeatingTexture(`${base}assets/textures/texture_wood_normal.jpg`);
 	woodMap.colorSpace = THREE.SRGBColorSpace;
 
-	const roofMap = loadRepeatingTexture('/assets/textures/roof_texture.jpg');
-	const roofNormalMap = loadRepeatingTexture('/assets/textures/roof_texture_normal_map.jpg');
+	const roofMap = loadRepeatingTexture(`${base}assets/textures/roof_texture.jpg`);
+	const roofNormalMap = loadRepeatingTexture(`${base}assets/textures/roof_texture_normal_map.jpg`);
 	roofMap.colorSpace = THREE.SRGBColorSpace;
 
 	return {
