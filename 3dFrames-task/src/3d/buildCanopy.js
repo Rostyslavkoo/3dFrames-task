@@ -216,8 +216,155 @@ function buildFrieze(dimensions, assets) {
 
   return group;
 }
+const LATTICE_SPACING = 0.5;
+const LATTICE_OVERHANG = 0.15;
 
 
+/**
+ * Lays a row of long lattice beams across the roof, spaced ≤ LATTICE_SPACING
+ * along X, each beam running along Z to span the depth (with overhang).
+ *
+ * @param {{width: number, height: number, depth: number}} dimensions
+ * @param {Record<string, THREE.BufferGeometry>} assets
+ * @returns {THREE.Group}
+ */
+function buildLattice(dimensions, assets) {
+  const group = new THREE.Group();
+  const y = getFrameTopY(dimensions);
+
+  const halfD = dimensions.depth / 2 + BEAM_SIZE / 2;
+  const beamLength = halfD * 2 + LATTICE_OVERHANG * 2;
+
+  const halfW = dimensions.width / 2 + BEAM_SIZE / 2;
+  const span = halfW * 2;
+  const count = Math.max(2, Math.ceil(span / LATTICE_SPACING) + 1);
+
+  for (let i = 0; i < count; i++) {
+    const x = -halfW + (i * span) / (count - 1);
+
+    const beam = new THREE.Mesh(assets.latticeBeamLong, new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+    beam.scale.set(beamLength, 1, 1);
+    beam.rotation.y = -Math.PI / 2;
+    beam.position.set(x - LATTICE_THICKNESS / 2, y, -halfD - LATTICE_OVERHANG);
+    beam.castShadow = true;
+    beam.receiveShadow = true;
+    group.add(beam);
+  }
+
+  return group;
+}
+
+
+
+const DECK_BOARD_WIDTH = 0.19;
+
+/**
+ * Lays decking boards across the internal frieze, running along X, stacked
+ * in rows along Z. The last row is trimmed to fit exactly.
+ *
+ * @param {{width: number, height: number, depth: number}} dimensions
+ * @param {Record<string, THREE.BufferGeometry>} assets
+ * @returns {THREE.Group}
+ */
+function buildDecking(dimensions, assets) {
+  const group = new THREE.Group();
+
+  const halfW = dimensions.width / 2 + BEAM_SIZE / 2 + FRIEZE_OVERHANG;
+  const halfD = dimensions.depth / 2 + BEAM_SIZE / 2 + FRIEZE_OVERHANG;
+
+  const y = getFrameTopY(dimensions) + FRIEZE_RISE;
+  const boardLength = halfW * 2;
+  const totalDepth = halfD * 2;
+  const boardCount = Math.ceil(totalDepth / DECK_BOARD_WIDTH);
+
+  for (let i = 0; i < boardCount; i++) {
+    const rowStart = -halfD + i * DECK_BOARD_WIDTH;
+    const rowWidth = Math.min(DECK_BOARD_WIDTH, halfD - rowStart);
+
+    const board = new THREE.Mesh(assets.decking, new THREE.MeshStandardMaterial({ color: 0xa0784f }));
+    board.scale.set(rowWidth / DECK_BOARD_WIDTH, 1, boardLength);
+    board.rotation.y = Math.PI / 2;
+    board.position.set(halfW, y, rowStart + rowWidth / 2);
+    board.castShadow = true;
+    board.receiveShadow = true;
+    group.add(board);
+  }
+
+  return group;
+}
+
+const ROOF_THICKNESS = 0.002;
+
+function buildRoofCover(dimensions, assets) {
+  const group = new THREE.Group();
+
+  const halfW = dimensions.width / 2 + BEAM_SIZE / 2 + FRIEZE_OVERHANG;
+  const halfD = dimensions.depth / 2 + BEAM_SIZE / 2 + FRIEZE_OVERHANG;
+
+  const y = getFrameTopY(dimensions) + FRIEZE_RISE + DECK_THICKNESS;
+
+  const cover = new THREE.Mesh(assets.roofCover, new THREE.MeshStandardMaterial({ color: 0x333333 }));
+  cover.scale.set(halfW * 2, 1, halfD * 2);
+  cover.position.set(-halfW, y, halfD);
+  cover.receiveShadow = true;
+  group.add(cover);
+
+  return group;
+}
+
+const PROFILE_DEPTH = 0.0867;
+const PROFILE_CORNER_ARM = 0.0859;
+
+function buildPerimeterProfile(dimensions, assets) {
+  const group = new THREE.Group();
+
+  const halfW = dimensions.width / 2 + BEAM_SIZE / 2 + FRIEZE_OVERHANG;
+  const halfD = dimensions.depth / 2 + BEAM_SIZE / 2 + FRIEZE_OVERHANG;
+
+  const y = getFrameTopY(dimensions) + FRIEZE_RISE + DECK_THICKNESS + ROOF_THICKNESS;
+
+  const lineW = halfW - PROFILE_DEPTH;
+  const lineD = halfD - PROFILE_DEPTH;
+
+  const corners = [
+    { x: -lineW, z: -lineD, angle: 0, mirrorZ: false },
+    { x: lineW, z: -lineD, angle: Math.PI, mirrorZ: true },
+    { x: lineW, z: lineD, angle: Math.PI, mirrorZ: false },
+    { x: -lineW, z: lineD, angle: 0, mirrorZ: true },
+  ];
+
+  for (const corner of corners) {
+    const piece = new THREE.Mesh(assets.perimeterProfileCorner, new THREE.MeshStandardMaterial({ color: 0xb0b4b8, metalness: 1, roughness: 0.3 }));
+    piece.scale.set(1, 1, corner.mirrorZ ? -1 : 1);
+    piece.position.set(corner.x, y, corner.z);
+    piece.rotation.y = -corner.angle;
+    piece.castShadow = true;
+    piece.receiveShadow = true;
+    group.add(piece);
+  }
+
+  const widthLength = lineW * 2 - PROFILE_CORNER_ARM * 2;
+  const depthLength = lineD * 2 - PROFILE_CORNER_ARM * 2;
+
+  const runs = [
+    { x: -lineW + PROFILE_CORNER_ARM, z: -lineD, angle: 0, length: widthLength },
+    { x: lineW, z: -lineD + PROFILE_CORNER_ARM, angle: Math.PI / 2, length: depthLength },
+    { x: lineW - PROFILE_CORNER_ARM, z: lineD, angle: Math.PI, length: widthLength },
+    { x: -lineW, z: lineD - PROFILE_CORNER_ARM, angle: -Math.PI / 2, length: depthLength },
+  ];
+
+  for (const run of runs) {
+    const profile = new THREE.Mesh(assets.perimeterProfile, new THREE.MeshStandardMaterial({ color: 0xb0b4b8, metalness: 1, roughness: 0.3 }));
+    profile.scale.set(run.length, 1, 1);
+    profile.position.set(run.x, y, run.z);
+    profile.rotation.y = -run.angle;
+    profile.castShadow = true;
+    profile.receiveShadow = true;
+    group.add(profile);
+  }
+
+  return group;
+}
 
 export function buildCanopy(dimensions, assets) {
     const canopyGroup = new THREE.Group();
@@ -225,6 +372,9 @@ export function buildCanopy(dimensions, assets) {
     canopyGroup.add(buildPerimeterBeams(dimensions, assets));
     canopyGroup.add(buildCornerBraces(dimensions, assets));
     canopyGroup.add(buildFrieze(dimensions, assets));
-
+    canopyGroup.add(buildDecking(dimensions, assets));
+    canopyGroup.add(buildLattice(dimensions, assets));
+    canopyGroup.add(buildRoofCover(dimensions, assets));
+    canopyGroup.add(buildPerimeterProfile(dimensions, assets));
     return canopyGroup;
 }

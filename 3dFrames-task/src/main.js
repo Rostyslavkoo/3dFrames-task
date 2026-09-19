@@ -1,12 +1,13 @@
 import './style.css';
-import * as THREE from 'three';
 import { createScene } from './3d/createScene';
 import { loadAssets } from './3d/assetLoad';
 import { buildCanopy } from './3d/buildCanopy.js';
+import { createDimensionsForm } from './ui/dimensionsForm.js';
 
 const canvas = document.getElementById('scene-canvas');
 const { scene } = createScene(canvas);
 let canopyGroup = null;
+
 loadAssets().then(assets => {
 	function rebuildCanopy(dimensions) {
 		if (canopyGroup) {
@@ -16,7 +17,6 @@ loadAssets().then(assets => {
 		scene.add(canopyGroup);
 	}
 
-  const initialDimensions = { width: 4, depth: 3 , height: 2.5 };
-
-  rebuildCanopy(initialDimensions);
+	const initialDimensions = createDimensionsForm(rebuildCanopy);
+	rebuildCanopy(initialDimensions);
 });

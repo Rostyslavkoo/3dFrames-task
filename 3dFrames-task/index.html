@@ -8,6 +8,21 @@
 		<title>3dframes-task</title>
 	</head>
 	<body>
+		<div id="ui-panel">
+			<h1>Розміри навісу</h1>
+
+			<label for="input-width">Ширина (м)</label>
+			<input id="input-width" type="number" min="2" max="8" step="0.1" value="4" />
+
+			<label for="input-height">Висота (м)</label>
+			<input id="input-height" type="number" min="2" max="8" step="0.1" value="2.5" />
+
+			<label for="input-depth">Глибина (м)</label>
+			<input id="input-depth" type="number" min="2" max="8" step="0.1" value="3" />
+
+			<p id="input-hint">Допустимий діапазон: 2-8 м</p>
+		</div>
+
 		<canvas id="scene-canvas"></canvas>
 		<script type="module" src="/src/main.js"></script>
 	</body>
