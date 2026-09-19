@@ -16,7 +16,7 @@ export function createScene(canvas) {
 
 	const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 	renderer.shadowMap.enabled = true;
 	const ambient = new THREE.AmbientLight(0xffffff, 0.6);
 	scene.add(ambient);
@@ -24,6 +24,11 @@ export function createScene(canvas) {
 	const sun = new THREE.DirectionalLight(0xffffff, 1.2);
 	sun.castShadow = true;
 	sun.position.set(8, 10, 6);
+	sun.shadow.mapSize.set(2048, 2048);
+	sun.shadow.camera.left = -10;
+	sun.shadow.camera.right = 10;
+	sun.shadow.camera.top = 10;
+	sun.shadow.camera.bottom = -10;
 	scene.add(sun);
 
 	const floor = new THREE.Mesh(

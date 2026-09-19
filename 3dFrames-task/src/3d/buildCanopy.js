@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { createMaterials } from './materials.js';
+
+const materials = createMaterials();
 
 const COLUMN_MODEL_HEIGHT = 2.2;
 const MAX_COLUMN_SPACING = 2.5;
@@ -42,7 +45,7 @@ function buildColumns(dimensions, assets) {
   const scaleY = dimensions.height / COLUMN_MODEL_HEIGHT;
 
   for (const pos of getColumnPositions(dimensions.width, dimensions.depth)) {
-    const column = new THREE.Mesh(assets.column, new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+    const column = new THREE.Mesh(assets.column, materials.wood);
     column.scale.set(1, scaleY, 1);
     column.position.set(pos.x, 0, pos.y);
     column.castShadow = true;
@@ -118,7 +121,7 @@ function buildPerimeterBeams(dimensions, assets) {
   });
 
   for (const segment of segments) {
-    const beam = new THREE.Mesh(assets.perimeterBeam, new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+    const beam = new THREE.Mesh(assets.perimeterBeam, materials.wood);
     beam.scale.set(segment.length, 1, 1);
     beam.position.set(segment.start.x, beamY, segment.start.y);
     beam.rotation.y = -segment.angle;
@@ -145,7 +148,7 @@ function buildCornerBraces(dimensions, assets) {
 
   for (const corner of corners) {
     for (const angle of corner.angles) {
-      const brace = new THREE.Mesh(assets.cornerBrace, new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+      const brace = new THREE.Mesh(assets.cornerBrace, materials.wood);
       brace.scale.set(1, scaleY, 1);
       brace.position.set(corner.x, 0, corner.z);
       brace.rotation.y = angle;
@@ -204,7 +207,7 @@ function buildFrieze(dimensions, assets) {
     ];
 
     for (const b of boards) {
-      const board = new THREE.Mesh(assets.frieze, new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+      const board = new THREE.Mesh(assets.frieze, materials.wood);
       board.scale.set(b.length, 1, 1);
       board.position.set(b.x, y, b.z);
       board.rotation.y = -b.angle;
@@ -242,7 +245,7 @@ function buildLattice(dimensions, assets) {
   for (let i = 0; i < count; i++) {
     const x = -halfW + (i * span) / (count - 1);
 
-    const beam = new THREE.Mesh(assets.latticeBeamLong, new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+    const beam = new THREE.Mesh(assets.latticeBeamLong, materials.wood);
     beam.scale.set(beamLength, 1, 1);
     beam.rotation.y = -Math.PI / 2;
     beam.position.set(x - LATTICE_THICKNESS / 2, y, -halfD - LATTICE_OVERHANG);
@@ -281,7 +284,7 @@ function buildDecking(dimensions, assets) {
     const rowStart = -halfD + i * DECK_BOARD_WIDTH;
     const rowWidth = Math.min(DECK_BOARD_WIDTH, halfD - rowStart);
 
-    const board = new THREE.Mesh(assets.decking, new THREE.MeshStandardMaterial({ color: 0xa0784f }));
+    const board = new THREE.Mesh(assets.decking, materials.wood);
     board.scale.set(rowWidth / DECK_BOARD_WIDTH, 1, boardLength);
     board.rotation.y = Math.PI / 2;
     board.position.set(halfW, y, rowStart + rowWidth / 2);
@@ -303,7 +306,7 @@ function buildRoofCover(dimensions, assets) {
 
   const y = getFrameTopY(dimensions) + FRIEZE_RISE + DECK_THICKNESS;
 
-  const cover = new THREE.Mesh(assets.roofCover, new THREE.MeshStandardMaterial({ color: 0x333333 }));
+  const cover = new THREE.Mesh(assets.roofCover, materials.roof);
   cover.scale.set(halfW * 2, 1, halfD * 2);
   cover.position.set(-halfW, y, halfD);
   cover.receiveShadow = true;
@@ -334,7 +337,7 @@ function buildPerimeterProfile(dimensions, assets) {
   ];
 
   for (const corner of corners) {
-    const piece = new THREE.Mesh(assets.perimeterProfileCorner, new THREE.MeshStandardMaterial({ color: 0xb0b4b8, metalness: 1, roughness: 0.3 }));
+    const piece = new THREE.Mesh(assets.perimeterProfileCorner, materials.aluminium);
     piece.scale.set(1, 1, corner.mirrorZ ? -1 : 1);
     piece.position.set(corner.x, y, corner.z);
     piece.rotation.y = -corner.angle;
@@ -354,7 +357,7 @@ function buildPerimeterProfile(dimensions, assets) {
   ];
 
   for (const run of runs) {
-    const profile = new THREE.Mesh(assets.perimeterProfile, new THREE.MeshStandardMaterial({ color: 0xb0b4b8, metalness: 1, roughness: 0.3 }));
+    const profile = new THREE.Mesh(assets.perimeterProfile, materials.aluminium);
     profile.scale.set(run.length, 1, 1);
     profile.position.set(run.x, y, run.z);
     profile.rotation.y = -run.angle;
